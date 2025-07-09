@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tech for Girls Registration</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9f5ff;
+      color: #333;
+      display: flex;
+      justify-content: center;
+      padding: 40px;
+    }
+
+    .container {
+      background: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 500px;
+    }
+
+    h2 {
+      text-align: center;
+      color: #7e3af2;
+    }
+
+    label {
+      font-weight: bold;
+      margin-top: 15px;
+      display: block;
+    }
+
+    input,
+    select,
+    button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+    }
+
+    button {
+      background-color: #7e3af2;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      margin-top: 20px;
+    }
+
+    button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+
+    #shareCounter {
+      margin-top: 10px;
+      font-weight: bold;
+      color: green;
+    }
+
+    .success {
+      margin-top: 20px;
+      color: green;
+      text-align: center;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h2>Registration</h2>
+    <form id="registrationForm">
+      <label for="name">Name</label>
+      <input type="text" id="name" required>
+
+      <label for="phone">Phone Number</label>
+      <input type="number" id="phone" required>
+
+      <label for="email">Email ID</label>
+      <input type="email" id="email" required>
+
+      <label for="college">College/Department</label>
+      <select id="college" required>
+        <option value="">--Select--</option>
+        <option value="CSE">Computer Science Engineering</option>
+        <option value="ECE">Electronics Communication Engineering</option>
+        <option value="EEE">Electrical Electronics Engineering</option>
+        <option value="IT">Information Technology</option>
+        <option value="Other">Other</option>
+      </select>
+
+      <label for="screenshot">Upload Screenshot</label>
+      <input type="file" id="screenshot" accept="image/*" required>
+
+      <button type="button" id="shareBtn">📲 Share on WhatsApp</button>
+      <div id="shareCounter">Click count: 0/5</div>
+
+      <button type="submit" id="submitBtn" disabled>Register</button>
+    </form>
+
+    <div class="success" id="message"></div>
+  </div>
+ <script>
+    let count = 0;
+    let isSubmitted = localStorage.getItem("submitted");
+
+    const shareBtn = document.getElementById("shareBtn");
+    const submitBtn = document.getElementById("submitBtn");
+    const shareCounter = document.getElementById("shareCounter");
+    const message = document.getElementById("message");
+
+    if (isSubmitted) {
+      disableForm();
+      message.textContent = "🎉 Your submission has already been recorded.";
+    }
+
+    shareBtn.addEventListener("click", () => {
+      if (count < 5) {
+        count++;
+        shareCounter.textContent = `Click count: ${count}/5`;
+        const whatsappMsg = "Hey Buddy, Join Tech For Girls Community 👩‍💻💜\nJoin here: https://chat.whatsapp.com/KotUw1DXAVZ3A0M2k7U9nk?mode=ac_c";
+
+        const encodedMsg = encodeURIComponent(whatsappMsg);
+        window.open(`https://wa.me/?text=${encodedMsg}`, "_blank");
+
+        if (count === 5) {
+          shareCounter.textContent = "✅ Sharing complete. Please continue.";
+          submitBtn.disabled = false;
+        }
+      }
+    });
+
+    document.getElementById("registrationForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      if (count < 5) {
+        alert("Please complete 5 shares first!");
+        return;
+      }
+
+      const name = document.getElementById("name").value;
+      const phone = document.getElementById("phone").value;
+      const email = document.getElementById("email").value;
+      const college = document.getElementById("college").value;
+      const file = document.getElementById("screenshot").files[0];
+
+      const fileUrl = await uploadFile(file); // uploads to imgbb
+
+    
+
+      const form = new FormData();
+      form.append("name", name);
+      form.append("phone", phone);
+      form.append("email", email);
+      form.append("college", college);
+      form.append("screenshot", fileUrl);
+
+     
+
+
+      fetch("https://script.google.com/macros/s/AKfycbzBLTQ1ymJYooEXifw14nnyVE35ZPKzL2xEme5BcdGR38Kopq4wrproQbrHqyaPkcuU/exec", {
+        method: "POST",
+        body: form
+
+
+      }).then(() => {
+        message.textContent = "🎉 Your submission has been recorded. Thanks for being part of Tech for Girls!";
+        disableForm();
+        localStorage.setItem("submitted", "true");
+      }).catch(() => {
+        alert("Failed to submit form.");
+      });
+    });
+
+    function disableForm() {
+      document.querySelectorAll("input, button, select").forEach(el => {
+        el.disabled = true;
+      });
+    }
+
+    async function uploadFile(file) {
+      const form = new FormData();
+      form.append("image", file);
+
+      const response = await fetch("https://api.imgbb.com/1/upload?key=0659c8088b41e008ca08a758bbd7ee5f", {
+        method: "POST",
+        body: form
+      });
+
+      const data = await response.json();
+      return data.data.url;
+    }
+  </script>
+</body>
+
+</html>
